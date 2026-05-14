@@ -50,7 +50,7 @@ export default function QuestionList({ quizId, quizType, mozliweWyniki = [] }: P
       return Promise.all([
         updateQuestion(quizId, q.id, { ...q, kolejnosc: swapQ.kolejnosc } as any),
         updateQuestion(quizId, swapQ.id, { ...swapQ, kolejnosc: q.kolejnosc } as any),
-      ])
+      ]).then(() => {})
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['questions', quizId] }),
   })

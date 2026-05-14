@@ -23,6 +23,12 @@ import {
   QUIZ_TYPE_INPUT_LABELS,
 } from '../../types/api'
 
+// useFieldArray wymaga tablicy obiektów — lokalny typ formularza
+type FormValues = Omit<CreateQuizRequest, 'mozliweWyniki' | 'poziomy'> & {
+  mozliweWyniki: { value: string }[]
+  poziomy: { value: string }[]
+}
+
 interface Props {
   defaultValues?: Partial<CreateQuizRequest>
   onSubmit: (data: CreateQuizRequest) => void
@@ -35,16 +41,18 @@ interface Props {
 const TIMER_TYPES: QuizTypeInput[] = ['TEST_WIEDZY', 'DOPASOWANIA', 'UZUPELNIANIE_LUK']
 
 export default function QuizMetaForm({ defaultValues, onSubmit, isLoading, error, lockType }: Props) {
-  const { register, handleSubmit, control, watch, formState: { errors } } = useForm<CreateQuizRequest>({
+  const { register, handleSubmit, control, watch, formState: { errors } } = useForm<FormValues>({
     defaultValues: {
       title: '',
       description: '',
       category: 'INNE',
       quizType: 'TEST_WIEDZY',
-      limitCzasuSekundy: null,
-      mozliweWyniki: [],
-      poziomy: [],
-      ...defaultValues,
+      limitCzasuSekundy: undefined,
+      mozliweWyniki: (defaultValues?.mozliweWyniki ?? []).map((v) => ({ value: v })),
+      poziomy: (defaultValues?.poziomy ?? []).map((v) => ({ value: v })),
+      ...defaultValues
+        ? { title: defaultValues.title ?? '', description: defaultValues.description ?? '', category: defaultValues.category ?? 'INNE', quizType: defaultValues.quizType ?? 'TEST_WIEDZY', limitCzasuSekundy: defaultValues.limitCzasuSekundy ?? undefined }
+        : {},
     },
   })
 
@@ -54,13 +62,21 @@ export default function QuizMetaForm({ defaultValues, onSubmit, isLoading, error
   const isRanking = quizType === 'RANKING'
 
   const { fields: wynikFields, append: appendWynik, remove: removeWynik } =
-    useFieldArray({ control, name: 'mozliweWyniki' as any })
+    useFieldArray({ control, name: 'mozliweWyniki' })
 
   const { fields: poziomFields, append: appendPoziom, remove: removePoziom } =
-    useFieldArray({ control, name: 'poziomy' as any })
+    useFieldArray({ control, name: 'poziomy' })
+
+  const handleFormSubmit = handleSubmit((data: FormValues) => {
+    onSubmit({
+      ...data,
+      mozliweWyniki: data.mozliweWyniki.map((w) => w.value).filter(Boolean),
+      poziomy: data.poziomy.map((p) => p.value).filter(Boolean),
+    })
+  })
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+    <Box component="form" onSubmit={handleFormSubmit}>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       <Stack spacing={2.5}>
@@ -130,7 +146,7 @@ export default function QuizMetaForm({ defaultValues, onSubmit, isLoading, error
             {wynikFields.map((field, i) => (
               <Box key={field.id} sx={{ display: 'flex', gap: 1, mb: 1 }}>
                 <TextField
-                  {...register(`mozliweWyniki.${i}` as any, { required: true })}
+                  {...register(`mozliweWyniki.${i}.value`, { required: true })}
                   size="small"
                   fullWidth
                   placeholder={`Wynik ${i + 1}`}
@@ -143,7 +159,7 @@ export default function QuizMetaForm({ defaultValues, onSubmit, isLoading, error
             <Button
               startIcon={<AddIcon />}
               size="small"
-              onClick={() => appendWynik('' as any)}
+              onClick={() => appendWynik({ value: '' })}
             >
               Dodaj wynik
             </Button>
@@ -165,7 +181,7 @@ export default function QuizMetaForm({ defaultValues, onSubmit, isLoading, error
             {poziomFields.map((field, i) => (
               <Box key={field.id} sx={{ display: 'flex', gap: 1, mb: 1 }}>
                 <TextField
-                  {...register(`poziomy.${i}` as any, { required: true })}
+                  {...register(`poziomy.${i}.value`, { required: true })}
                   size="small"
                   fullWidth
                   placeholder={`Poziom ${i + 1}`}
@@ -178,7 +194,7 @@ export default function QuizMetaForm({ defaultValues, onSubmit, isLoading, error
             <Button
               startIcon={<AddIcon />}
               size="small"
-              onClick={() => appendPoziom('' as any)}
+              onClick={() => appendPoziom({ value: '' })}
             >
               Dodaj poziom
             </Button>

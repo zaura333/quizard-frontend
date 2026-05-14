@@ -50,7 +50,7 @@ export default function QuestionEditor({
   const [pytanieType, setPytanieType] = useState<PytanieType>(availableTypes[0])
   const queryClient = useQueryClient()
 
-  const methods = useForm({ defaultValues: { tresc: '', punkty: 1, opcje: [{ value: '' }, { value: '' }] } })
+  const methods = useForm<Record<string, any>>({ defaultValues: { tresc: '', punkty: 1, opcje: [{ value: '' }, { value: '' }] } })
 
   const mutation = useMutation({
     mutationFn: (data: CreateQuestionRequest) => addQuestion(quizId, data),
