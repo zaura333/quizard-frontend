@@ -15,22 +15,19 @@ interface Props {
   onChange: (v: string) => void
 }
 
-/** Parsuje string odpowiedzi → mapa lewy→prawy */
+/** Parsuje JSON odpowiedzi → mapa lewy→prawy */
 const parseValue = (value: string): Record<string, string> => {
   if (!value) return {}
-  return Object.fromEntries(
-    value.split(',').map((para) => {
-      const idx = para.indexOf(':')
-      return [para.slice(0, idx), para.slice(idx + 1)]
-    })
-  )
+  try {
+    return JSON.parse(value)
+  } catch {
+    return {}
+  }
 }
 
-/** Serializuje mapę → string odpowiedzi */
+/** Serializuje mapę → JSON */
 const serialize = (map: Record<string, string>): string =>
-  Object.entries(map)
-    .map(([l, r]) => `${l}:${r}`)
-    .join(',')
+  JSON.stringify(map)
 
 export default function DopasowanieQuestion({ pytanie, value, onChange }: Props) {
   const pairs = parseValue(value)
