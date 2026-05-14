@@ -16,6 +16,7 @@ import Layout from '../components/layout/Layout'
 import QuizMetaForm from '../components/creator/QuizMetaForm'
 import QuestionList from '../components/creator/QuestionList'
 import type { CreateQuizRequest, QuizSummaryResponse, QuizTypeInput } from '../types/api'
+import { QUIZ_TYPE_NAME_TO_INPUT } from '../types/api'
 
 const STEPS = ['Informacje o quizie', 'Pytania', 'Publikacja']
 
@@ -74,7 +75,7 @@ export default function QuizCreatePage() {
             </Typography>
             <QuestionList
               quizId={quiz.id}
-              quizType={quiz.quizType as unknown as QuizTypeInput}
+              quizType={QUIZ_TYPE_NAME_TO_INPUT[quiz.quizType]}
               mozliweWyniki={quiz.mozliweWyniki ?? []}
             />
           </Paper>
